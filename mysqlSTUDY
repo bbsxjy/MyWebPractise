@@ -1,0 +1,88 @@
+net start/stop mysql 来启动服务，cmd
+
+mysql 后面+以下参数
+-V 版本信息
+-uroot 用户名 
+-p 密码
+-P 是端口码
+-h 服务器名字
+
+退出： quit exit \q
+登录的时候加上--prompt可以修改提示符
+
+\D 完整日期
+\d 当前数据库
+\h 服务器名称
+\u 当前用户
+
+显示版本日期用户
+SELECT VERSION();
+SELECT NOW();
+SELECT USER();
+
+关键字，函数名称，都要大写
+数据库，表，字段都要小写
+分号结尾
+
+SHOW WARNINGS是看错误信息的
+
+创建数据库：
+CREATE {DATABASE | SCHEMA} [IF NOT EXITSTS] db_name 
+加了IF NOT EXITSTS就不会报错 
+不设定编码方式，就是默认在ini文件里设定的
+可以用CHARACTER SET charset_name
+
+修改用：
+ALTER {DATABASE | SCHEMA} [db_name] 
+CHARACTER SET charset_name
+
+删除用：
+DROP {DATABASE | SCHEMA} [IF EXITSTS] db_name 
+
+数据类型
+INT类：
+TINY,SMALL,MEDIUN,INT,BIG INT
+2^8,2^16,2^24,2^32,2^64
+字节，1,2,3,4,8
+
+float类：
+FLOAT[(M,D)]----M是数字总位数，D是小数点后的位数 E38
+DOUBLE[(M,D)]----E308
+
+日期类：
+YEAR-1970-2069年
+TIME-8385959-8385959
+DATE-1000-9999年
+DATETIME-1000年的0点-9999年12月31的0点
+TIMESTAMP-1970-2037
+一般会用timestamp或者数字的方法来储存信息
+
+字符型：
+CHAR(M):M个字节 0-255，会自动补偿
+VARCHAR(M)：存储定长 L+1，L<=M,M->0-65535
+TINYTEXT：存储定长 L+1，L<=2^8
+TEXT：存储定长 L+2，L<=2^16
+MEDIUMTEXT：存储定长 L+3，L<=2^24
+LONGTEXT：存储定长 L+4，L<=2^32
+ENUM('VALUE1','VALUE2'...) 1/2个字节，最多65535个枚举值
+SET('VALUE1','VALUE2'...) 取决于成员数，最多64个成员
+
+数据表是数据库的组成部分：
+USE+数据库名称-------打开数据库
+
+创建数据表(得事先设计好了，再进行填写)：
+CREATE TABLE [IF NOT EXITSTS] table_name(
+  column_name data_type,
+  ...
+)
+
+查看数据表：
+SHOW TABLES [FROM db_name]
+查看数据表结构：
+SHOW COLUMNS FROM tbl_name
+
+写入：
+INSERT [INTO] tbl_name [(col_name)] VALUES(val,...)
+
+查找：
+SELECT EXPR,... FROM TBL_NAME
