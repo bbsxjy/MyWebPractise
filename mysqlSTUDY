@@ -19,6 +19,8 @@ mysql 后面+以下参数
 SELECT VERSION();
 SELECT NOW();
 SELECT USER();
+用 SHOW DATABASES来查看所有数据库名字，然后用USE+名字
+选择数据库，在用show tables来查看所有表名！
 
 关键字，函数名称，都要大写
 数据库，表，字段都要小写
@@ -86,3 +88,44 @@ INSERT [INTO] tbl_name [(col_name)] VALUES(val,...)
 
 查找：
 SELECT EXPR,... FROM TBL_NAME
+
+主键 PRIMARY KEY：
+*一张表只有一个主键*
+保证记录唯一性，自动为NOT NULL
+创建：CREATE TABLE tb3(
+    -> id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    -> username VARCHAR(30) NOT NULL
+    -> );
+结果就是：
++----------+----------------------+------+-----+---------+----------------+
+| Field    | Type                 | Null | Key | Default | Extra          |
++----------+----------------------+------+-----+---------+----------------+
+| id       | smallint(5) unsigned | NO   | PRI | NULL    | auto_increment |
+| username | varchar(30)          | NO   |     | NULL    |                |
++----------+----------------------+------+-----+---------+----------------+
+之后每一条记录，每个id会自动增加。
+**重要：
+AUTO INCREAMENT 必须为主键，但是主键创建时候可以选择不添加此功能
+
+主键的唯一约束：
+UNIQUE KEY，字段可以为空
+*每张表可以存在多个唯一约束*
+创建：> CREATE TABLE tb5
+    -> (
+    -> id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    -> username VARCHAR(20) NOT NULL UNIQUE KEY,
+    -> age tinyint UNSIGNED)
+    -> ;
+结果就是:
++----------+----------------------+------+-----+---------+----------------+
+| Field    | Type                 | Null | Key | Default | Extra          |
++----------+----------------------+------+-----+---------+----------------+
+| id       | smallint(5) unsigned | NO   | PRI | NULL    | auto_increment |
+| username | varchar(20)          | NO   | UNI | NULL    |                |
+| age      | tinyint(3) unsigned  | YES  |     | NULL    |                |
++----------+----------------------+------+-----+---------+----------------+
+
+默认约束：
+如果插入记录的时候，没有个字段赋值，则自动赋予默认值
+创建： ...
+      variable name ENUM（‘1’，‘2’，‘3’）DEFAULT '3'
