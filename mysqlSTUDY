@@ -129,3 +129,111 @@ UNIQUE KEY，字段可以为空
 如果插入记录的时候，没有个字段赋值，则自动赋予默认值
 创建： ...
       variable name ENUM（‘1’，‘2’，‘3’）DEFAULT '3'
+
+
+外键约束（物理不常用，主逻辑）：
+1.父表子表必须要用相同的存贮引擎，无法使用临时表
+2.引擎只能是InnoDB
+3.外检咧和参照咧必须具有相似的数据类型。其中数字长度和符号位必须相同，但是字符的长度则可以不同
+4.外检列和参照咧必须创建索引，如果外检列不存在索引，则自动创建（只为参照列创建）
+
+用SHOW CREATE TABLE + TABLE NAME查看所用引擎
+用SHOW INDEXES FROM +TABLE NAME\G 查看是否有索引
+
+在下列例子中，pid是外检，id是参照
+> CREATE TABLE users(
+    -> id SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    -> username VARCHAR(10) NOT NULL,
+    -> pid SMALLINT UNSIGNED,
+    -> FOREIGN KEY (pid) REFERENCES province(id)
+    -> );
+参照操作：
+-> FOREIGN KEY (pid) REFERENCES province(id) ON DELETE 后面加
+CASCADE: 从父表中删除或者更新的时候，同时删除或者更新子表中匹配行
+SET NULL: 从父表中删除或者更新的时候，同时设置子表中的外检列为NULL，但是若此列已设置为NOT NULL 则操作不成功
+RESTRICT: 拒绝和父表同步
+
+
+只针对一个约束，叫列级约束，声明可以在语句前后
+针对2个或2个以上的叫表级约束，声明只能再列定义后
+
+添加单列：
+ALTER TABLE TABL_NAME ADD [COLUMN] COL_NAME COLUMN_DEFINITION [FIRST（所有列的最前面） | AFTER（默认） COL_NAME]：
+例：ALTER TABLE user ADD age VARCHAR(20) NOT NULL AFTER username；
+添加多列：
+ALTER TABLE TBL_NAME ADD [COLUMN] (COL_NAME COLUMN_DEF) 只能添加于所有列的后面
+
+删除单列或多列：
+ALTER TABLE TBL_NAME DROP [COLUMN] COL_NAME
+用逗号分隔： ALTER TABLE user DROP password， DROP age；
+
+添加约束：
+主键约束ALTER TABLE TBK_NAME ADD[CONSTRAINT [SYMBOL]] PRIMARY KEY [INDEX_TYPE] (INDEX_COL_NAME...)
+例：ALTER TABLE user2 ADD CONSTRAINT PK_USERS2_ID(主键名字) PRIMARY KEY(id)
+
+唯一约束ALTER TABLE TBL_NAME ADD [CONSTRAINT [SYMBOL]] UNIQUE [INDEX|KEY] [INDEX_NAME] [INDEX_TYPE] (INDEX_COL_NAME) (INDEX_COL_NAME...)
+例:ALTER TABLE USER2 ADD UNIQUE (USERNAME)
+
+外键约束ALTER TABLE TBL_NAME ADD [CONSTRAINT [SYMBOL]] FOREIGN KEY [INDEX_NAME]  (INDEX_COL_NAME...) REFERENCE_DEFINITION
+例：ALTER TABLE USER2 ADD FOREIGN KEY (PID) REFERENCES PROVINCE (ID);
+
+添加或者删除默认约束
+ALTER TABLE TBL_NAME ALTER [COLUMN] col_name {SET DEFAULT literal | DROP DEFAULT}
+例： ALTER TABLE usre ALTER age SET DEFAULT 15
+
+删除主键约束：
+ALTER TABLE TBK_NAME DROP PRIMARY KEY
+删除唯一约束：
+ALTER TABLE TBK_NAME DROP {INDEX|key} username
+删除外键约束：
+ALTER TABLE TBK_NAME DROP FOREIGN KEY FK_SYMBOL(约束名)
+
+修改数据表：
+修改列定义（数据类型，或者位置） ALTER TABLE TBL_NAME MODIFY [COLUMN] COL_NAME COLUMN_DEF [FIRST|AFTER COL_NAME]
+例： ALTER TABLE TBL_NAME MODIFY id SAMLLINT UNSIGNED NOT NULL FIRST
+修改列名称：ALTER TABLE TBL_NAME CHANGE [COLUMN] OLD_COL+NAME NEW_COLNAME COLUMN_DEF [FIRST | AFTER COL_NAME]
+修改数据表名：
+ALTER TABLE TBL_NAME RENAME NEW_NAME； RENAME TABLE TBL_NAME TO NEW_TB_NAME
+
+插入记录
+INSERT table_name VALUES（NULL/DEFAULT,'..'）;
+如果是NULL或者DEFAULT则自动递增
+不常用：INSERT USERS SET USERNAME='',PW='';这个可以用来子查询
+**用INSERT TEST(USERNAME) SELECT username FROM USERS WHERE age》=30
+可以将USER表里的username年龄大于30的写到新表test里**
+
+更新记录
+单表更新UPDATE users set age=age+5；//所有age记录+5 
+用WHERE语句挑选记录：UPDATE USERS SET AGES=AGES+10 WHERE ID%2=0;
+
+删除操作：
+DELETE FROM tabl_name 【where condition】
+
+查找记录：
+SELECE select_exp
+可以直接计算结果
+SELECT var1,var2 FROM TABLE_NAME var的顺序将影响结果的顺序
+赋予别名：SELECT ID AS XXX, USERNAME AS KKK FROM USERS同样影响结果
+
+条件表达式：
+对记录进行过滤，如果不指定where将对所有记录进行操作
+可加函数或者运算符
+
+GROUP BY 结果分组：
+[GROUP BY {COL_N |POSITION}] [ASC|DESC](升降序)
+SELECT sex FROM users GROUP BY sex 对结果进行分组，相当于统计种类  
+
+HAVING WHERE CONDITION
+SELECT sex,age FROM users GROUP BY sex HAVING AGE>35（必须要在SELECT里面选上，只能有一个返回值得条件）
+
+ORDER BY 对结果排序：
+【order by{col_name|expr|position} 【ASC|DESC】，...】
+SELECT *FROM USERS ORDER BY ID DESC
+SELECT *FROM USERS ORDER BY AGE,ID DESC(同时使用排序方法)
+
+LIMIT语句：
+限制查寻结果返回数量
+[LIMIT {[offset]row_count | row_count OFFSET offset}]
+OFFESET计算公式：分页效果，（当前页码-1）*每页所显示的记录数
+例：SEKECT * FROM USERS LIMIT 2(从头开始);
+SEKECT * FROM USERS LIMIT 2，2(从第二条开始);与ID不同
