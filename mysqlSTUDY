@@ -487,3 +487,60 @@ ROUTINE_BODY
 RETURNS VARCHAR(30)
 RETURN DATA_FORMAT(NOW(),'........')
 DROP FUNCTION FUNC_NAME
+
+---------------------------------------------------------------------
+存储过程（其实是将SQL语句封装成方法）
+-比单一的sql执行效率要高，省略了sql中间的各种翻译阶段，预编译方法
+-只编译一次，然后以后的就从内存中调用
+-减少网络流量
+-主要是对记录的增删改查，多表连接，而不能够创建数据库
+语法结构：
+**无参构造
+CREATE PROCEDURE sp1（） SELECT VERSION();
+调用：CALL sp1（）
+**有参构造
+IN类型，无返回结果
+DELIMITER//----修改结束符号
+CREATE PROCEDURE removeUserBYID(IN id INT UNSIGNED)
+BEGIN
+DELETE FROM users WHERE <这是指原来表里的>id =<这是指this，IN后面的ID>id;
+END
+//
+
+IN OUT 类型，有返回结果
+DELIMITER//----修改结束符号
+CREATE PROCEDURE removeUserBYID(IN id INT UNSIGNED，OUT userNums INT UNSIGNED)
+BEGIN
+DELETE FROM users WHERE <这是指原来表里的>id =<这是指this，IN后面的ID>id;
+SELECT count（id）FROM USERS INTO usernums；（放入这个要返回的variable）
+END
+//
+
+@VAR是用户变量，当前用户都可以用
+ROW_COUNT()代表被影响的函数行数
+
+---------------------------------------------------------------------------------
+存储引擎
+将数据以不同的技术存储在文件或内存中，叫做存储引擎，每一个都自己的不同的存储机制，索引技巧，锁定书评
+支持
+MYISAM--
+INNODB
+MEMORY
+CSV
+ARCHIVE
+
+并发控制
+当对多个连接对记录信息修改的时候保证一致性，完整性
+用锁来解决： 共享锁（可同时读取数据），排他锁（任何时候只能满足一个用户写入需要）
+表锁：开销最小
+行锁：开销最大，因为会对每一行都加锁
+
+事务
+保证数据库完整性
+ACID的特性
+
+外键
+保证数据一致性
+
+索引
+对数据排序，快速定位
