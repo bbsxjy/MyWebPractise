@@ -237,3 +237,253 @@ LIMIT语句：
 OFFESET计算公式：分页效果，（当前页码-1）*每页所显示的记录数
 例：SEKECT * FROM USERS LIMIT 2(从头开始);
 SEKECT * FROM USERS LIMIT 2，2(从第二条开始);与ID不同
+
+-----------------------------------------------------------------------------------------
+SET NAMEs gbk 设置显示文字编码方式
+子查询：指出现在其他SQL语句内的SELECT子句
+例：<Outter Query>           <SubQuery>必须是圆括号内
+SELECT *FROM t1 WHERE col1=（SELECT col2 FROM t2）；
+查询是指所有操作，子查询的结果可以被复用
+
+AVG，MAX,MIN都是聚合函数，在次前面加ROUND(,2)可以保留几位小数
+mysql> SELECT AVG(goods_price) FROM tdb_goods;
++------------------+
+| AVG(goods_price) |
++------------------+
+|     5636.3636364 |
++------------------+
+
+子查询：SELECT goods_id,goods_name,goods_price FROM tdb_goods WHERE goods_price > (SELECT ROUND(AVG(goods_price),2) AS avg_price FROM tdb_goods) ;
++----------+----------------------------------+-------------+
+| goods_id | goods_name                       | goods_price |
++----------+----------------------------------+-------------+
+|        3 | G150TH 15.6英寸游戏本                    |    8499.000 |
+|        7 | SVP13226SCB 13.3英寸触控超极本             |    7999.000 |
+|       13 | iMac ME086CH/A 21.5英寸一体电脑            |    9188.000 |
+|       17 | Mac Pro MD878CH/A 专业级台式电脑           |   28888.000 |
+|       18 |  HMZ-T3W 头戴显示设备                    |    6999.000 |
+|       20 | X3250 M4机架式服务器 2583i14                |    6888.000 |
+|       21 |  HMZ-T3W 头戴显示设备                    |    6999.000 |
++----------+----------------------------------+-------------+
+所有大于一定价格的数据 
+
+可以用于查询特定数据，可以用于PHP搜索？：SELECT goods_price FROM tdb_goods WHERE goods_cate = '超级本';
+ANY,SOME,ALL关键字
++----------+----------------------------------+-------------+
+| OPERAND       | ANY    | SOME |   ALL
++----------+----------------------------------+-------------+
+   >,>=           MIN      MIN      MAX
+   <,<=           MAX      MAX      MIN
+   =              ANY      ANY      n/a
+   <>,!=          n/a      n/a      ANY
+-------------------------------------------------------------
+WHERE goods_price = ANY(SELECT goods_price FROM tdb_goods WHERE goods_cate = '超级本')
+-- = ANY 或 = SOME 等价于 IN, NOT IN 除了选出的条件以外的条目
+WHERE goods_price IN (SELECT goods_price FROM tdb_goods WHERE goods_cate = '超级本')
+
+由于中文的字节存储量大，所以一般分类需要用外键来提供ID
+通常是链接两张不同的表
+table_reference {[INNER |CROSS] JOIN |{LEFT|RIGHT} [OUTER] JOIN}
+ON conditional_expr
+例                          参照                要参照的列名
+UPDATE tdb_goods INNER JOIN tdb_goods_cates ON goods_cate = cate_name 
+  SET goods_cate = cate_id ; 然后设置对应关系
+  
+CREATE..SELECT这个方法更加简洁 创建数据表并且同时写入记录
+  CREATE TABLE tdb_goods_brands (
+    brand_id SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    brand_name VARCHAR(40) NOT NULL
+  ) SELECT brand_name FROM tdb_goods GROUP BY brand_name;
+  
+**用连接来显示数据库查找到的记录，展示给用户看到  
+INNER JOIN 内连接与 JOIN,CROSS JOIN, INNER JOIN是等价的
+用ON设定连接条件，WHERE则是筛选
+内连接只操作两表的共同数据：
+   SELECT goods_id,goods_name,cate_name,brand_name,goods_price FROM tdb_goods AS g
+   INNER JOIN tdb_goods_cates AS c ON g.cate_id = c.cate_id
+左外连接：
+显示左表的全部记录及右表符合连接条件的记录
+右外连接也是同理
+
+多表连接
+   SELECT goods_id,goods_name,cate_name,brand_name,goods_price FROM tdb_goods AS g
+   INNER JOIN tdb_goods_cates AS c ON g.cate_id = c.cate_id
+   INNER JOIN tdb_goods_brands AS b ON g.brand_id = b.brand_id\G;
+
+无限级分类表设计
+包括很多小分类：图书-小说-。。。，大多电商操作都是如此
+   CREATE TABLE tdb_goods_types(
+     type_id   SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+     type_name VARCHAR(20) NOT NULL,
+     parent_id SMALLINT UNSIGNED NOT NULL DEFAULT 0
+  ); 
+  
+  +---------+------------+-----------+
+| type_id | type_name  | parent_id |
++---------+------------+-----------+
+|       1 | 家用电器          |         0 |
+|       2 | 电脑、办公        |         0 |
+|       3 | 大家电          |         1 |
+|       4 | 生活电器           |         1 |
+|       5 | 平板电视          |         3 |
+|       6 | 空调          |         3 |
+|       7 | 电风扇           |         4 |
+|       8 | 饮水机          |         4 |
+|       9 | 电脑整机           |         2 |
+|      10 | 电脑配件           |         2 |
+|      11 | 笔记本         |         9 |
+|      12 | 超级本           |         9 |
+|      13 | 游戏本          |         9 |
+|      14 | CPU        |        10 |
+|      15 | 主机           |        10 |
++---------+------------+-----------+
+用自身连接来查找数据
+ SELECT s.type_id,s.type_name,p.type_name FROM tdb_goods_types AS s LEFT JOIN tdb_goods_types AS  p ON s.parent_id = p.type_id;
+ 自身表做成两张表，然后用别名来区分就可以把ID换成具体的名字来显示了
+ +---------+------------+------------+
+| type_id | type_name  | type_name  |
++---------+------------+------------+
+|       1 | 家用电器          | NULL       |
+|       2 | 电脑、办公        | NULL       |
+|       3 | 大家电          | 家用电器          |
+|       4 | 生活电器           | 家用电器          |
+|       5 | 平板电视          | 大家电          |
+|       6 | 空调          | 大家电          |
+|       7 | 电风扇           | 生活电器           |
+|       8 | 饮水机          | 生活电器           |
+|       9 | 电脑整机           | 电脑、办公        |
+|      10 | 电脑配件           | 电脑、办公        |
+|      11 | 笔记本         | 电脑整机           |
+|      12 | 超级本           | 电脑整机           |
+|      13 | 游戏本          | 电脑整机           |
+|      14 | CPU        | 电脑配件           |
+|      15 | 主机           | 电脑配件           |
++---------+------------+------------+
+
+ SELECT p.type_id,p.type_name,s.type_name FROM tdb_goods_types AS p LEFT JOIN tdb_goods_types AS  s ON s.parent_id = p.type_id;
+ 这个就相当于把大类放前面后面显示子类
+ +---------+------------+-----------+
+| type_id | type_name  | type_name |
++---------+------------+-----------+
+|       1 | 家用电器          | 大家电         |
+|       1 | 家用电器          | 生活电器          |
+|       2 | 电脑、办公        | 电脑整机          |
+|       2 | 电脑、办公        | 电脑配件          |
+|       3 | 大家电          | 平板电视         |
+|       3 | 大家电          | 空调         |
+|       4 | 生活电器           | 电风扇          |
+|       4 | 生活电器           | 饮水机         |
+|       5 | 平板电视          | NULL      |
+|       6 | 空调          | NULL      |
+|       7 | 电风扇           | NULL      |
+|       8 | 饮水机          | NULL      |
+|       9 | 电脑整机           | 笔记本        |
+|       9 | 电脑整机           | 超级本          |
+|       9 | 电脑整机           | 游戏本         |
+|      10 | 电脑配件           | CPU       |
+|      10 | 电脑配件           | 主机          |
+|      11 | 笔记本         | NULL      |
+|      12 | 超级本           | NULL      |
+|      13 | 游戏本          | NULL      |
+|      14 | CPU        | NULL      |
+|      15 | 主机           | NULL      |
++---------+------------+-----------+
+这个ON后面的=意味着，双向指针提及任何一方就是指向=号的内容**，用户COUNT（）可以给出对应列内的记录个数
+
+多表删除
+DELETE t1 FROM tdb_goods AS t1 LEFT JOIN (SELECT goods_id,goods_name FROM tdb_goods 
+GROUP BY goods_name HAVING count(goods_name) >= 2 ) AS t2  
+ON t1.goods_name = t2.goods_name  
+WHERE t1.goods_id > t2.goods_id;
+
+--------------------------------------------------------
+字符函数：
+CONCAT（） 用于字符连接，例 
+mysql> SELECT CONCAT('JINGYU','XIE');
++------------------------+
+| CONCAT('JINGYU','XIE') |
++------------------------+
+| JINGYUXIE              |
++------------------------+
+
+CONCAT_WS()使用指定的分隔符进行字符连接，例指定连接字符设置在第一个
+mysql> SELECT CONCAT_WS('-','JINGYU','XIE');
++-------------------------------+
+| CONCAT_WS('-','JINGYU','XIE') |
++-------------------------------+
+| JINGYU-XIE                    |
++-------------------------------+.
+
+FORMAT()数字格式化,逗号后面表示保留位数，给数字添加千分位符号
+mysql> SELECT FORMAT(12560.75,2)
++--------------------+
+| FORMAT(12560.75,2) |
++--------------------+
+| 12,560.75          |
++--------------------+
+
+LOWER(),UPPER()转换大小写
+LEFT(),RIGHT() 获取左或者右侧字符
+mysql> SELECT LEFT('mysql',2);
++-----------------+
+| LEFT('mysql',2) |
++-----------------+
+| my              |
++-----------------+
+
+去除头尾特定字符（leading，trailing，both）
+mysql> SELECT TRIM(LEADING '?' FROM '??MYSQL???');
++-------------------------------------+
+| TRIM(LEADING '?' FROM '??MYSQL???') |
++-------------------------------------+
+| MYSQL???                            |
++-------------------------------------+
+
+mysql> SELECT TRIM(TRAILING '?' FROM '??MYSQL???');
++--------------------------------------+
+| TRIM(TRAILING '?' FROM '??MYSQL???') |
++--------------------------------------+
+| ??MYSQL                              |
++--------------------------------------+
+
+REPLACE（'22222','2',''）
+【NOT】LIKE 是不是与某字符串相似,%任意字符，_任意一个字符
+SELECT * FROM TEST WHERE ... LIKE '%5%'
+SELECT * FROM TEST WHERE ... LIKE '%1%%' ESCAPE '1' 忽略1
+
+TRUNCATE()数字截取
+SELECT TRUNCATE(125.89，1)
+->125.8
+SELECT TRUNCATE(125.89，-1)
+->120
+
+[NOT] BETWEEN..AND..
+[NOT]IN()
+IS[NOT]NULL
+
+NOW()当前日期时间
+CURDATE()当前日期
+CURTIME()当前时间
+DATE_ADD('2014-3-12',INTERVAL +-365 DAY/1 YEAR/3 WEEK)
+DATEDIFF('2014-3-12','2013-3-12')求差值
+DATE_FORMAT(‘2014-3-12’，‘%m/%d/%Y’)改日期格式
+
+CONNECTION_ID() 连接ID
+DATEBASE() 已打开数据库
+LAST_INSERT_ID 最后写入的ID号
+
+加密函数
+MD5()信息摘要算法 主要用于页面
+PASSWORD()密码算法 修改当前sql的密码
+
+---------------------------------------------------------------------
+自定义函数
+UDF，MYSQL函数扩展
+CREATE FUNCTION FUNC_NAME
+RETURNS
+{STRING|INTEGER|REAL|DECIMAL}
+ROUTINE_BODY
+-》CREATE FUNCTION FUNC_NAME
+RETURNS VARCHAR(30)
+RETURN DATA_FORMAT(NOW(),'........')
+DROP FUNCTION FUNC_NAME
