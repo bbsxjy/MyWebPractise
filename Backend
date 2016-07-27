@@ -1,0 +1,140 @@
+<img src="getVerify.php" alt="" /> 可以在验证码下面 直接load验证码
+下面是一些，常用的PHP对mysql操作的语句
+/**
+ * 连接数据库
+ * @return resource
+ */
+function connect(){
+    //建立连接
+    $link=mysql_connect(DB_HOST,DB_USER,DB_PWD) or die("数据库连接失败Error:".mysql_errno().":".mysql_error());
+    //设定编码方式
+    mysql_set_charset(DB_CHARSET);
+    //设定要打开的数据库
+    mysql_select_db(DB_DBNAME) or die("指定数据库打开失败");
+    //看是否能成功
+    return $link;
+}
+
+/**
+ * 完成记录插入的操作
+ * @param string $table
+ * @param array $array
+ * @return number
+ */
+function insert($table,$array){
+    //用空去得到KEY的值
+    $keys=join(",",array_keys($array));
+    //用空去得带''的值
+    $vals="'".join("','",array_values($array))."'";
+    //然后把带着这个格式的语句写到mysql里面去
+    $sql="insert {$table}($keys) values({$vals})";
+    //执行语句
+    mysql_query($sql);
+    return mysql_insert_id();
+}
+
+/**
+ * 记录的更新操作
+ * @param string $table
+ * @param array $array
+ * @param string $where
+ * @return number
+ */
+//update imooc_admin set username='king' where id=1 要使用的sql语句
+function update($table,$array,$where=null){
+    $str=null;
+                        //key对应的值
+    foreach($array as $key=>$val){
+        //因为PHP是弱语言，所以str都不用初始化
+        if($str==null){
+            $sep="";
+        }else{
+            $sep=",";
+        }
+        //.=是赋值运算符，意思是$a.=$b等价于$a=$a.$b;将$a和$b合并一起之后在赋值给$a
+        $str.=$sep.$key."='".$val."'";
+    }
+    //更新语句
+    $sql="update {$table} set {$str} ".($where==null?null:" where ".$where);
+    //赋值给RESULT，查询
+    $result=mysql_query($sql);
+    //var_dump($result);
+    //var_dump(mysql_affected_rows());exit;
+    //返回受影响的记录条数
+    if($result){
+        return mysql_affected_rows();
+    }else{
+        return false;
+    }
+}
+
+
+/**
+ *	删除记录
+ * @param string $table
+ * @param string $where
+ * @return number
+ */
+function delete($table,$where=null){
+    //没穿条件，就是空，不然where.+条件
+    $where=$where==null?null:" where ".$where;
+    //执行语句delete，拼接
+    $sql="delete from {$table} {$where}";
+    mysql_query($sql);
+    return mysql_affected_rows();
+}
+
+//查包括，几条或者所有记录
+
+/**
+ *得到指定一条记录
+ * @param string $sql
+ * @param string $result_type
+ * @return multitype:
+ */
+function fetchOne($sql,$result_type=MYSQL_ASSOC){
+    //$是sql语句
+    $result=mysql_query($sql);
+    //默认返回关联数组
+    $row=mysql_fetch_array($result,$result_type);
+    //返回一条记录
+    return $row;
+}
+
+/**
+ * 得到结果集中所有记录 ...
+ * @param string $sql
+ * @param string $result_type
+ * @return multitype:
+ */
+function fetchAll($sql,$result_type=MYSQL_ASSOC){
+    $result=mysql_query($sql);
+    //用loop把所有记录都保存在array里面，@是用来抑制提示PHP错误用的
+    while(@$row=mysql_fetch_array($result,$result_type)){
+        $rows[]=$row;
+    }
+    return $rows;
+}
+
+/**
+ * 得到结果集中的记录条数
+ * @param unknown_type $sql
+ * @return number
+ */
+function getResultNum($sql){
+    $result=mysql_query($sql);
+    return mysql_num_rows($result);
+}
+
+/**
+ * 得到上一步插入记录的ID号
+ * @return number
+ */
+function getInsertId(){
+    return mysql_insert_id();
+}
+
+
+
+
+
