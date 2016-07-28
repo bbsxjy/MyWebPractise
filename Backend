@@ -149,6 +149,13 @@ function getInsertId(){
 }
 
 ------------------------------------------------------------------------------------------
-
+今天花了很久debug，发现出现的问题是在copy完code以后 数据库的名字没有更改
+mysql语句已经升级成mysqli语句，所以再改需要时间
+发现和确认问题的时间用太久了，因为不会用echo在ide中检测，不会用alert在web 表单中检测
+    $message = $row;
+    echo "<script type='text/javascript'>alert('$message');</script>";
+这个方法可以牢记
+对于验证码，之前写code或者模仿的时候，少写了一段，所以导致数字验证一直不成功
+然后html的问题可以用 form 中action来加后台代码，method 提供get和post两种方法
 
 
