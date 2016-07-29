@@ -189,3 +189,44 @@ require_once '../include.php';
 这边应该就是ajax的地方 前台后台连接
 
 分页设置，如果结果太多，mysql_qurry代表查询成功或者不成功
+function showPage($page,$totalPage,$where=null,$sep="&nbsp;"){
+	//&后面加where 就代表 分类的数据
+	$where=($where==null)?null:"&".$where;
+	//得到当前脚本地址
+	$url = $_SERVER ['PHP_SELF'];
+	//判断如果现在是第一页就不需要变成URL格式，而只需要变成文字即可，尾页也一样
+	$index = ($page == 1) ? "首页" : "<a href='{$url}?page=1{$where}'>首页</a>";
+	$last = ($page == $totalPage) ? "尾页" : "<a href='{$url}?page={$totalPage}{$where}'>尾页</a>";
+	//单独把操作给列出来了，是1就保留不然就-1
+	$prevPage=($page>=1)?$page-1:1;
+	$nextPage=($Page>=$totalPage)?$totalPage:$page+1;
+	//当前如果是1就是文字，不然就-1
+	$prev = ($page == 1) ? "上一页" : "<a href='{$url}?page={$prevPage}{$where}'>上一页</a>";
+	//如果是最后一页就是文字
+	$next = ($page == $totalPage) ? "下一页" : "<a href='{$url}?page={$nextPage}{$where}'>下一页</a>";
+	//当前总共多少页
+	$str = "总共{$totalPage}页/当前是第{$page}页";
+	//用来显示页数
+	for($i = 1; $i <= $totalPage; $i ++) {
+		//当前页无连接
+		if ($page == $i) {
+			//直接输出页码
+			$p .= "[{$i}]";
+		} else {
+			//不然就直接把下面几页做成URL 可供直接访问
+			$p .= "<a href='{$url}?page={$i}{$where}'>[{$i}]</a>";
+		}
+	}
+	//这是最底下 总页数，当前页的一个连接
+ 	$pageStr=$str.$sep . $index .$sep. $prev.$sep . $p.$sep . $next.$sep . $last;
+ 	return $pageStr;
+}
+主要用这个function就可以实现了，也就是一个轮子，AJAX实现的分页是无刷新的!可以在调试**
+
+当列不固定的时候，如果单一表 则非常大 用mangodb来存就非关系型数据库就很简单！所以以后还是要去学mango或者NOdb的
+<form action="doAction1.php" method="post" enctype="multipart/form-data">
+
+	请选择上传文件：<input type="file"  name="myFile"  /><br/>
+	<input type="submit" value="上传"/>
+</form>
+这个表用于上传，enctype必须要包含因为他告诉服务器需要用什么编码方式处理文件**
