@@ -85,6 +85,8 @@ SHOW COLUMNS FROM tbl_name
 
 写入：
 INSERT [INTO] tbl_name [(col_name)] VALUES(val,...)
+INSERT INTO Customers (CustomerName, ContactName, Address, City, PostalCode, Country)
+VALUES ('Cardinal','Tom B. Erichsen','Skagen 21','Stavanger','4006','Norway');
 
 查找：
 SELECT EXPR,... FROM TBL_NAME
